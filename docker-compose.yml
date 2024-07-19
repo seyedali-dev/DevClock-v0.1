@@ -7,7 +7,7 @@ services:
     container_name: KEYCLOAK_MYSQL
     restart: unless-stopped
     volumes:
-      - ./db-data/mysql/keycloak:/var/lib/mysql
+      - ./db-data/MySQL/keycloak:/var/lib/mysql
     ports:
       - "3308:3306"
     environment:
@@ -16,7 +16,7 @@ services:
       MYSQL_USER: keycloak
       MYSQL_PASSWORD: keycloak
 
-  ### KeyCloak
+  ### KeyCloak-Server
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.7
     container_name: KEYCLOAK-SERVER
@@ -36,3 +36,13 @@ services:
       - ./realm/:/opt/keycloak/data/import
     depends_on:
       - keycloak-mysql
+
+  ### Redis
+  redis:
+    image: redis:7.2.3
+    container_name: REDIS
+    command: redis-server --save 60 1 --loglevel warning
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./db-data/Redis:/data
