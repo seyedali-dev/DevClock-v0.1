@@ -1,0 +1,38 @@
+version: '3'
+services:
+
+  ### MySQL db for Keycloak server to persist data
+  keycloak-mysql:
+    image: mysql:8
+    container_name: KEYCLOAK_MYSQL
+    restart: unless-stopped
+    volumes:
+      - ./db-data/mysql/keycloak:/var/lib/mysql
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: keycloak
+
+  ### KeyCloak
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.7
+    container_name: KEYCLOAK-SERVER
+    command: [ "start-dev", "--import-realm" ]
+    environment:
+      DB_VENDOR: MYSQL
+      DB_ADDR: mysql
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: keycloak
+
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./realm/:/opt/keycloak/data/import
+    depends_on:
+      - keycloak-mysql
