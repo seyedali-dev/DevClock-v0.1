@@ -71,3 +71,18 @@ services:
     volumes:
       - ./broker/kafka:/bitnami
 
+  # ----------------------------Services----------------------------
+  ## Eureka Server
+  DISCOVERY-SERVER:
+    image: dukeofjava/eureka:0.0.1-SNAPSHOT
+    container_name: DISCOVERY-SERVER
+    ports:
+      - "8761:8761"
+    environment:
+      - EUREKA_HOST=localhost
+    healthcheck:
+      test: "curl --fail --silent localhost:8761/actuator/health | grep UP || exit 1"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
