@@ -93,8 +93,10 @@ services:
     ports:
       - "9999:9999"
     environment:
-      - DC_KEYCLOAK_SERVER_HOST=keycloak
-      - DC_EUREKA_SERVER_HOST=discovery-server
+      - KEYCLOAK_SERVER_HOST=keycloak
+      - EUREKA_SERVER_HOST=discovery-server
+      - MICROSERVICE_AUTHENTICATION_SERVICE_URL=http://authentication-service/keycloak-user
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
     healthcheck:
       test: "curl --fail --silent localhost:9999/actuator/health | grep UP || exit 1"
       interval: 2s
@@ -104,5 +106,33 @@ services:
       discovery-server:
         condition: service_healthy
       keycloak:
+        condition: service_started
+      authentication-service:
+        condition: service_started
+
+  # --- --- --- Authentication-Service
+  authentication-service:
+    image: dukeofjava/authentication:0.0.1-SNAPSHOT
+    container_name: AUTHENTICATION-SERVICE
+    ports:
+      - "8081:8081"
+    environment:
+      - KEYCLOAK_SERVER_HOST=keycloak
+      - EUREKA_SERVER_HOST=discovery-server
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_CACHE_TIME_TO_LIVE=600000 # 1hour
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
+    healthcheck:
+      test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
+      interval: 2s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      redis:
         condition: service_started
 
