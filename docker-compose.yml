@@ -60,7 +60,7 @@ services:
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092,EXTERNAL://kafka_b:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-kraft:9092,EXTERNAL://localhost:9094
       - KAFKA_BROKER_ID=1
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@127.0.0.1:9093
       - ALLOW_PLAINTEXT_LISTENER=yes
@@ -122,7 +122,6 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_CACHE_TIME_TO_LIVE=600000 # 1hour
-#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY= TRACE
     healthcheck:
       test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
       interval: 2s
@@ -134,5 +133,34 @@ services:
       keycloak:
         condition: service_started
       redis:
+        condition: service_started
+
+  # --- --- --- TimeEntry-Service
+  time-entry-service:
+    image: dukeofjava/time-entry:0.0.1-SNAPSHOT
+    container_name: TIME-ENTRY-SERVICE
+    ports:
+      - "8082:8082"
+    environment:
+      - KEYCLOAK_SERVER_HOST=keycloak
+      - EUREKA_SERVER_HOST=discovery-server
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_CACHE_TIME_TO_LIVE=600000 # 1hour
+      - AUTHENTICATION_SERVICE_HANDLE_USER_BASE_URL=authentication-service
+      - KAFKA_SERVER_HOST_and_PORT=kafka-kraft:9092
+    healthcheck:
+      test: "curl --fail --silent localhost:8082/actuator/health | grep UP || exit 1"
+      interval: 2s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      redis:
+        condition: service_started
+      kafka-kraft:
         condition: service_started
 
