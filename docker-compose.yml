@@ -185,7 +185,6 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_CACHE_TIME_TO_LIVE=600000 # 1hour
-      - AUTHENTICATION_SERVICE_HANDLE_USER_BASE_URL=authentication-service
       - KAFKA_SERVER_HOST_AND_PORT=kafka-kraft:9094
     healthcheck:
       test: "curl --fail --silent localhost:8083/actuator/health | grep UP || exit 1"
@@ -198,6 +197,29 @@ services:
       keycloak:
         condition: service_started
       redis:
+        condition: service_started
+      kafka-kraft:
+        condition: service_started
+
+  # --- --- --- Task-Service
+  task-service:
+    image: dukeofjava/task:0.0.1-SNAPSHOT
+    container_name: TASK-SERVICE
+    ports:
+      - "8084:8084"
+    environment:
+      - KEYCLOAK_SERVER_HOST=keycloak
+      - EUREKA_SERVER_HOST=discovery-server
+      - KAFKA_SERVER_HOST_AND_PORT=kafka-kraft:9094
+    healthcheck:
+      test: "curl --fail --silent localhost:8084/actuator/health | grep UP || exit 1"
+      interval: 2s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      keycloak:
         condition: service_started
       kafka-kraft:
         condition: service_started
