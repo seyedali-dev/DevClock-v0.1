@@ -1,6 +1,6 @@
 # Build a dockerfile for all services by simply running the script.
 
-$rootFolder = "D:\Spring-boot-Tutorial\source-code\Resume-Projects\DevClock-v0.1"
+$rootFolder = "D:\Skill-Development\Spring-boot-Tutorial\source-code\Resume-Projects\DevClock-v0.1"
 
 $services = @(
     @{Name = "eureka"; Folder = "Discovery-Server"},
